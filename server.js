@@ -4,46 +4,58 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-let posts = [];
+// Bellekte saklanacak örnek kullanıcılar
+let users = [
+    { id: 1, name: "Ahmet", email: "ahmet@example.com" },
+    { id: 2, name: "Ayşe", email: "ayse@example.com" }
+];
 
-// Blog yazılarını listeleme
-app.get('/posts', (req, res) => {
-    res.json(posts);
+// 1. Kullanıcıları listeleme
+app.get('/users', (req, res) => {
+    res.json(users);
 });
 
-// Yeni bir blog yazısı ekleme
-app.post('/posts', (req, res) => {
-    const { id, title, content } = req.body;
-    const newPost = { id, title, content };
-    posts.push(newPost);
-    res.status(201).json({ message: 'Blog yazısı eklendi', post: newPost });
+// 2. Yeni kullanıcı ekleme
+app.post('/users', (req, res) => {
+    const { id, name, email } = req.body;
+
+    // Aynı ID'de kullanıcı varsa hata döndür
+    if (users.find(user => user.id === id)) {
+        return res.status(400).json({ message: "Bu ID'ye sahip kullanıcı zaten var" });
+    }
+
+    const newUser = { id, name, email };
+    users.push(newUser);
+    res.status(201).json({ message: "Kullanıcı eklendi", user: newUser });
 });
 
-// Blog yazısını güncelleme
-app.put('/posts/:id', (req, res) => {
+// 3. Kullanıcı bilgilerini güncelleme
+app.put('/users/:id', (req, res) => {
     const { id } = req.params;
-    const { title, content } = req.body;
-    const post = posts.find(p => p.id == id);
+    const { name, email } = req.body;
 
-    if (post) {
-        post.title = title;
-        post.content = content;
-        res.json({ message: 'Blog yazısı güncellendi', post });
+    const user = users.find(user => user.id == id);
+
+    if (user) {
+        user.name = name || user.name;
+        user.email = email || user.email;
+        res.json({ message: "Kullanıcı güncellendi", user });
     } else {
-        res.status(404).json({ message: 'Blog yazısı bulunamadı' });
+        res.status(404).json({ message: "Kullanıcı bulunamadı" });
     }
 });
 
-// Blog yazısını silme
-app.delete('/posts/:id', (req, res) => {
+// 4. Kullanıcı silme
+app.delete('/users/:id', (req, res) => {
     const { id } = req.params;
-    const postIndex = posts.findIndex(p => p.id == id);
 
-    if (postIndex !== -1) {
-        const removedPost = posts.splice(postIndex, 1);
-        res.json({ message: 'Blog yazısı silindi', post: removedPost });
+    const userIndex = users.findIndex(user => user.id == id);
+
+    if (userIndex !== -1) {
+        const removedUser = users.splice(userIndex, 1);
+        res.json({ message: "Kullanıcı silindi", user: removedUser });
     } else {
-        res.status(404).json({ message: 'Blog yazısı bulunamadı' });
+        res.status(404).json({ message: "Kullanıcı bulunamadı" });
     }
 });
 
